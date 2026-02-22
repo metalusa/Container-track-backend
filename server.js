@@ -133,4 +133,23 @@ app.get("/track", async (req, res) => {
   try {
     let result = {};
 
-    // Always
+    // Always include LDB
+    const ldb = await axios.get(`https://api.metalexportusa.com/ldb?container=${container}`);
+    result.ldb = ldb.data;
+
+    // MSC (future expansion)
+    if (prefix === "MSMU") {
+      result.line = "MSC";
+    }
+
+    res.json(result);
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Tracking failed" });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
