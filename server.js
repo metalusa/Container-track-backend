@@ -2,7 +2,7 @@ import express from "express";
 import axios from "axios";
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Allow frontend access
 app.use((req, res, next) => {
@@ -12,7 +12,6 @@ app.use((req, res, next) => {
 
 /**
  * 1) LDB BASIC API
- * Returns last event + sorted movement list
  */
 app.get("/ldb", async (req, res) => {
   const container = (req.query.container || "").trim().toUpperCase();
@@ -33,7 +32,6 @@ app.get("/ldb", async (req, res) => {
 
     const data = response.data.object;
 
-    // Sort movements oldest → newest
     const movements = (data.trackLog || [])
       .slice()
       .sort((a, b) => new Date(a.timestampTimezone) - new Date(b.timestampTimezone))
@@ -68,7 +66,7 @@ app.get("/ldb", async (req, res) => {
 });
 
 /**
- * 2) LDB FULL API (more detailed)
+ * 2) LDB FULL API
  */
 app.get("/ldb-full", async (req, res) => {
   const container = (req.query.container || "").trim().toUpperCase();
@@ -122,7 +120,6 @@ app.get("/ldb-full", async (req, res) => {
 
 /**
  * 3) MASTER TRACKING ENDPOINT
- * Combines LDB + Shipping Line (MSC, MAERSK, CMA, etc.)
  */
 app.get("/track", async (req, res) => {
   const container = (req.query.container || "").trim().toUpperCase();
@@ -136,24 +133,4 @@ app.get("/track", async (req, res) => {
   try {
     let result = {};
 
-    // Always include LDB
-    const ldb = await axios.get(`http://localhost:3000/ldb?container=${container}`);
-    result.ldb = ldb.data;
-
-    // MSC
-    if (prefix === "MSMU") {
-      result.line = "MSC";
-      // MSC API will be added here later
-    }
-
-    res.json(result);
-
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: "Tracking failed" });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+    // Always
